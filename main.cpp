@@ -8,6 +8,17 @@ const int MAXN = 4000005;
 int parent[MAXN];
 int rnk[MAXN];
 
+inline int read_int() {
+    int x = 0;
+    char c = getchar();
+    while (c < '0' || c > '9') c = getchar();
+    while (c >= '0' && c <= '9') {
+        x = x * 10 + (c - '0');
+        c = getchar();
+    }
+    return x;
+}
+
 int find(int x) {
     if (parent[x] != x) {
         parent[x] = find(parent[x]);
@@ -31,20 +42,22 @@ void unite(int x, int y) {
 }
 
 int main() {
-    int t;
-    scanf("%d", &t);
+    int t = read_int();
 
     while (t--) {
-        int n;
-        scanf("%d", &n);
+        int n = read_int();
 
         vector<int> vals;
+        vals.reserve(2 * n);
+
         vector<int> i_arr(n), j_arr(n), e_arr(n);
         vector<int> i_idx(n), j_idx(n);
 
         // Read all constraints
         for (int k = 0; k < n; k++) {
-            scanf("%d %d %d", &i_arr[k], &j_arr[k], &e_arr[k]);
+            i_arr[k] = read_int();
+            j_arr[k] = read_int();
+            e_arr[k] = read_int();
             vals.push_back(i_arr[k]);
             vals.push_back(j_arr[k]);
         }
