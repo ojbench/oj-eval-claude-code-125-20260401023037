@@ -1,5 +1,5 @@
 #include <cstdio>
-#include <algorithm>
+#include <unordered_map>
 #include <vector>
 using namespace std;
 
@@ -47,37 +47,35 @@ int main() {
     while (t--) {
         int n = read_int();
 
-        vector<int> vals;
-        vals.reserve(2 * n);
+        unordered_map<int, int> id_map;
+        id_map.reserve(2 * n);
 
         vector<int> i_arr(n), j_arr(n), e_arr(n);
         vector<int> i_idx(n), j_idx(n);
 
-        // Read all constraints
+        int cnt = 0;
+
+        // Read all constraints and assign IDs on the fly
         for (int k = 0; k < n; k++) {
             i_arr[k] = read_int();
             j_arr[k] = read_int();
             e_arr[k] = read_int();
-            vals.push_back(i_arr[k]);
-            vals.push_back(j_arr[k]);
+
+            if (id_map.find(i_arr[k]) == id_map.end()) {
+                id_map[i_arr[k]] = cnt++;
+            }
+            if (id_map.find(j_arr[k]) == id_map.end()) {
+                id_map[j_arr[k]] = cnt++;
+            }
+
+            i_idx[k] = id_map[i_arr[k]];
+            j_idx[k] = id_map[j_arr[k]];
         }
-
-        // Coordinate compression
-        sort(vals.begin(), vals.end());
-        vals.erase(unique(vals.begin(), vals.end()), vals.end());
-
-        int m = vals.size();
 
         // Initialize Union-Find
-        for (int i = 0; i < m; i++) {
+        for (int i = 0; i < cnt; i++) {
             parent[i] = i;
             rnk[i] = 0;
-        }
-
-        // Pre-compute indices
-        for (int k = 0; k < n; k++) {
-            i_idx[k] = lower_bound(vals.begin(), vals.end(), i_arr[k]) - vals.begin();
-            j_idx[k] = lower_bound(vals.begin(), vals.end(), j_arr[k]) - vals.begin();
         }
 
         // Process equality constraints
