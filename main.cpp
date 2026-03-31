@@ -40,6 +40,7 @@ int main() {
 
         vector<int> vals;
         vector<int> i_arr(n), j_arr(n), e_arr(n);
+        vector<int> i_idx(n), j_idx(n);
 
         // Read all constraints
         for (int k = 0; k < n; k++) {
@@ -60,14 +61,16 @@ int main() {
             rnk[i] = 0;
         }
 
-        // Process all constraints
+        // Pre-compute indices
         for (int k = 0; k < n; k++) {
-            int i_idx = lower_bound(vals.begin(), vals.end(), i_arr[k]) - vals.begin();
-            int j_idx = lower_bound(vals.begin(), vals.end(), j_arr[k]) - vals.begin();
+            i_idx[k] = lower_bound(vals.begin(), vals.end(), i_arr[k]) - vals.begin();
+            j_idx[k] = lower_bound(vals.begin(), vals.end(), j_arr[k]) - vals.begin();
+        }
 
+        // Process equality constraints
+        for (int k = 0; k < n; k++) {
             if (e_arr[k] == 1) {
-                // Equality constraint
-                unite(i_idx, j_idx);
+                unite(i_idx[k], j_idx[k]);
             }
         }
 
@@ -75,10 +78,7 @@ int main() {
         bool satisfied = true;
         for (int k = 0; k < n; k++) {
             if (e_arr[k] == 0) {
-                int i_idx = lower_bound(vals.begin(), vals.end(), i_arr[k]) - vals.begin();
-                int j_idx = lower_bound(vals.begin(), vals.end(), j_arr[k]) - vals.begin();
-
-                if (find(i_idx) == find(j_idx)) {
+                if (find(i_idx[k]) == find(j_idx[k])) {
                     satisfied = false;
                     break;
                 }
