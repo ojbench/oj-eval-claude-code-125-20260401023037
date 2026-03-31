@@ -1,52 +1,34 @@
 #include <cstdio>
-#include <unordered_map>
+#include <algorithm>
 #include <vector>
 using namespace std;
 
-class UnionFind {
-private:
-    unordered_map<int, int> parent;
-    unordered_map<int, int> rank;
+const int MAXN = 4000005;
 
-public:
-    void make_set(int x) {
-        if (parent.find(x) == parent.end()) {
-            parent[x] = x;
-            rank[x] = 0;
-        }
+int parent[MAXN];
+int rnk[MAXN];
+
+int find(int x) {
+    if (parent[x] != x) {
+        parent[x] = find(parent[x]);
     }
+    return parent[x];
+}
 
-    int find(int x) {
-        if (parent[x] != x) {
-            parent[x] = find(parent[x]);
-        }
-        return parent[x];
+void unite(int x, int y) {
+    int px = find(x);
+    int py = find(y);
+    if (px == py) return;
+
+    if (rnk[px] < rnk[py]) {
+        parent[px] = py;
+    } else if (rnk[px] > rnk[py]) {
+        parent[py] = px;
+    } else {
+        parent[py] = px;
+        rnk[px]++;
     }
-
-    void unite(int x, int y) {
-        int px = find(x);
-        int py = find(y);
-        if (px == py) return;
-
-        if (rank[px] < rank[py]) {
-            parent[px] = py;
-        } else if (rank[px] > rank[py]) {
-            parent[py] = px;
-        } else {
-            parent[py] = px;
-            rank[px]++;
-        }
-    }
-
-    bool same(int x, int y) {
-        return find(x) == find(y);
-    }
-
-    void clear() {
-        parent.clear();
-        rank.clear();
-    }
-};
+}
 
 int main() {
     int t;
@@ -56,36 +38,47 @@ int main() {
         int n;
         scanf("%d", &n);
 
-        UnionFind uf;
-        vector<tuple<int, int, int>> constraints;
+        vector<int> vals;
+        vector<int> i_arr(n), j_arr(n), e_arr(n);
 
         // Read all constraints
         for (int k = 0; k < n; k++) {
-            int i, j, e;
-            scanf("%d %d %d", &i, &j, &e);
-            constraints.push_back(make_tuple(i, j, e));
-            uf.make_set(i);
-            uf.make_set(j);
+            scanf("%d %d %d", &i_arr[k], &j_arr[k], &e_arr[k]);
+            vals.push_back(i_arr[k]);
+            vals.push_back(j_arr[k]);
         }
 
-        // First pass: process all equality constraints
-        for (const auto& c : constraints) {
-            int i = get<0>(c);
-            int j = get<1>(c);
-            int e = get<2>(c);
-            if (e == 1) {
-                uf.unite(i, j);
+        // Coordinate compression
+        sort(vals.begin(), vals.end());
+        vals.erase(unique(vals.begin(), vals.end()), vals.end());
+
+        int m = vals.size();
+
+        // Initialize Union-Find
+        for (int i = 0; i < m; i++) {
+            parent[i] = i;
+            rnk[i] = 0;
+        }
+
+        // Process all constraints
+        for (int k = 0; k < n; k++) {
+            int i_idx = lower_bound(vals.begin(), vals.end(), i_arr[k]) - vals.begin();
+            int j_idx = lower_bound(vals.begin(), vals.end(), j_arr[k]) - vals.begin();
+
+            if (e_arr[k] == 1) {
+                // Equality constraint
+                unite(i_idx, j_idx);
             }
         }
 
-        // Second pass: check all inequality constraints
+        // Check inequality constraints
         bool satisfied = true;
-        for (const auto& c : constraints) {
-            int i = get<0>(c);
-            int j = get<1>(c);
-            int e = get<2>(c);
-            if (e == 0) {
-                if (uf.same(i, j)) {
+        for (int k = 0; k < n; k++) {
+            if (e_arr[k] == 0) {
+                int i_idx = lower_bound(vals.begin(), vals.end(), i_arr[k]) - vals.begin();
+                int j_idx = lower_bound(vals.begin(), vals.end(), j_arr[k]) - vals.begin();
+
+                if (find(i_idx) == find(j_idx)) {
                     satisfied = false;
                     break;
                 }
@@ -93,7 +86,6 @@ int main() {
         }
 
         printf("%s\n", satisfied ? "YES" : "NO");
-        uf.clear();
     }
 
     return 0;
